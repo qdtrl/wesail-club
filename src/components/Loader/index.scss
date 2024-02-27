@@ -1,0 +1,41 @@
+@import '../../config/config.scss';
+
+div.loader {
+  margin: 0 0;
+  .loader-icon {
+    width: 40px;
+    height: 40px;
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    border-radius: 50px;
+    border: 6px solid transparent;
+    border-top-color: green;
+    border-bottom-color: green;
+    animation: spin 1s linear infinite;
+    &::after {
+      content: '';
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      bottom: 5px;
+      right: 5px;
+      border-radius: 50px;
+      border: 6px solid transparent;
+      border-top-color: green;
+      border-bottom-color: green;
+      opacity: 0.6;
+      animation: spinReverse 3s linear infinite;
+    }
+  }  
+}
+
+@keyframes spin {
+  0% {transform: rotate(0deg);}
+  100%{transform: rotate(360deg);}
+}
+
+@keyframes spinReverse {
+  0% {transform: rotate(0deg);}
+  100%{transform: rotate(-360deg);}
+}

@@ -1,0 +1,10 @@
+@import '../../config/config.scss';
+
+.nomatch {
+	height: 70vh;
+
+	h1,p {
+		color: $black;
+	}
+}
+
