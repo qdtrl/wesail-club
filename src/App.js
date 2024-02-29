@@ -2,14 +2,12 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-import { Alert, Stack } from '@mui/material';
+import { Stack } from '@mui/material';
 import { Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Alerts, Loader } from './components';
-
-import { ForgotPassword, Home, Layout, Login, NoMatch, Register } from './pages';
-import { collection, getDocs } from 'firebase/firestore/lite';
-import { db, auth } from './services/firebase';
+import { Club, Clubs, ForgotPassword, Home, Layout, Login, NoMatch, Register, UpdateClub } from './pages';
+import { auth } from './services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 const App = () => {
@@ -17,7 +15,7 @@ const App = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+      user?.displayName ? setCurrentUser(user) : setCurrentUser(null);
     });
 
     // Nettoyer l'abonnement lors du démontage du composant
@@ -44,6 +42,10 @@ const App = () => {
           <Layout>
             <Routes>
               <Route path="/" exact element={<Home/>}/>
+              <Route path="/clubs" exact element={<Clubs/>}/>
+              <Route path="/clubs/:id" exact element={<Club/>}/>
+              <Route path="/clubs/:id/update" element={<UpdateClub/>}/>
+              <Route path='*' element={<NoMatch />}/>
             </Routes>
           </Layout>
           }

@@ -46,9 +46,17 @@ const AccountMenu = ({ children }) => {
     return (
         <React.Fragment>
             <Box sx={{ display: 'flex', justifyContent: 'space-around' , alignItems: 'center', textAlign: 'center' }}>
-                <Typography sx={{ minWidth: 100 }}>Événement</Typography>
+                <Typography 
+                    sx={{ minWidth: 100 }}
+                    onClick={() => navigate('/events')}>
+                    Événement
+                </Typography>
 
-                <Typography sx={{ minWidth: 100 }}>Club</Typography>
+                <Typography 
+                sx={{ minWidth: 100 }}
+                onClick={() => navigate('/clubs')}>
+                    Club
+                </Typography>
                 
                 <IconButton
                     onClick={handleClick}
