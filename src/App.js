@@ -72,7 +72,7 @@ const App = () => {
               <Route path="/events" exact element={<Events/>}/>
               <Route path="/events/:id" exact element={<Event/>}/>
               <Route path="/events/:id/update" exact element={<UpdateEvent/>}/>
-              <Route path="/events/:id/new" exact element={<CreateEvent/>}/>
+              <Route path="/create-events" exact element={<CreateEvent/>}/>
 
               <Route path="/conversations" exact element={<Conversations/>}/>
               <Route path="/conversations/:id" exact element={<Conversation/>}/>

@@ -17,8 +17,8 @@ const Clubs = () => {
     const getClubs = async () => {
         const clubsRef = collection(db, "clubs");
         const clubsSnapshot = await getDocs(clubsRef);
-  
-        const clubsList = clubsSnapshot.docs.map(doc => doc.data());
+
+        const clubsList = clubsSnapshot.docs.map(doc => ( { ...doc.data(), id: doc.id }));
         
         setClubs(clubsList);
         setLoading(false);
@@ -55,6 +55,7 @@ const Clubs = () => {
                 />
             
                 <Stack flexWrap='wrap' gap={2} sx={{ width: '100%' }}>
+                    {filteredClubs.length === 0 && <Typography variant="body1">Aucun club trouvé...</Typography>}
                     {filteredClubs.map((club, i) => (
                         <Card key={i} sx={{ maxWidth: '98vw', minWidth: 300 }} >
                             <CardMedia
@@ -67,7 +68,7 @@ const Clubs = () => {
                                     gutterBottom 
                                     variant="h5" 
                                     component="div" 
-                                    onClick={() => navigate(`/clubs/${club.user_id}`)} 
+                                    onClick={() => navigate(`/clubs/${club.id}`)} 
                                     sx={{
                                         cursor: 'pointer',
                                         '&:hover': {
