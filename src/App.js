@@ -6,12 +6,28 @@ import { Stack } from '@mui/material';
 import { Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Alerts, Loader } from './components';
-import { Account, Club, ClubManagement, Clubs, CreateEvent, Event, Events, ForgotPassword, Home, Layout, Login, NoMatch, Register, UpdateEvent } from './pages';
+import { 
+  Account, 
+  Club,
+  ClubManagement,
+  Clubs,
+  Conversation,
+  Conversations,
+  CreateEvent,
+  Event,
+  Events,
+  ForgotPassword,
+  Home,
+  Layout,
+  Login,
+  NoMatch,
+  Register,
+  UpdateEvent } from './pages';
 import { auth } from './services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 const App = () => {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [ currentUser, setCurrentUser ] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -52,6 +68,9 @@ const App = () => {
               <Route path="/events/:id" exact element={<Event/>}/>
               <Route path="/events/:id/update" exact element={<UpdateEvent/>}/>
               <Route path="/events/:id/new" exact element={<CreateEvent/>}/>
+
+              <Route path="/conversations" exact element={<Conversations/>}/>
+              <Route path="/conversations/:id" exact element={<Conversation/>}/>
 
               <Route path="/clubs" exact element={<Clubs/>}/>
               <Route path="/clubs/:id" exact element={<Club/>}/>

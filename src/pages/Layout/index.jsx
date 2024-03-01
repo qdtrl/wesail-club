@@ -55,15 +55,39 @@ const AccountMenu = ({ children }) => {
                 </IconButton>
 
                 <Typography 
-                    sx={{ minWidth: 100 }}
+                    sx={{
+                        minWidth: 100,
+                        cursor: 'pointer',
+                        '&:hover': {
+                            textDecoration: 'underline'
+                        }
+                    }}
                     onClick={() => navigate('/events')}>
                     Événements
                 </Typography>
+
+                <Typography 
+                    sx={{
+                        minWidth: 100,
+                        cursor: 'pointer',
+                        '&:hover': {
+                            textDecoration: 'underline'
+                        }
+                    }}
+                    onClick={() => navigate('/conversations')}>
+                    Conversations
+                </Typography>
                 
                 <Typography 
-                sx={{ minWidth: 100 }}
-                onClick={() => navigate('/clubs')}>
-                    Clubs
+                    sx={{
+                        minWidth: 100,
+                        cursor: 'pointer',
+                        '&:hover': {
+                            textDecoration: 'underline'
+                        }
+                    }}
+                    onClick={() => navigate('/clubs')}>
+                        Clubs
                 </Typography>
                 
                 <IconButton
