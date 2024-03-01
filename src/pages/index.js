@@ -3,11 +3,8 @@ import { lazy } from "react";
 // Auth
 const Login = lazy(() => import("./Visitors/Login"));
 const Register = lazy(() => import("./Visitors/Register"));
-const NoMatch = lazy(() => import("./NoMatch"));
 const ForgotPassword = lazy(() => import("./Visitors/ForgotPassword"));
 
-
-const Layout = lazy(() => import("./Layout"));
 const Home = lazy(() => import("./Home/show"));
 
 // Events
@@ -32,8 +29,6 @@ export {
     Login,
     Register,
     ForgotPassword,
-    NoMatch,
-    Layout,
     Home,
     Events,
     Event,

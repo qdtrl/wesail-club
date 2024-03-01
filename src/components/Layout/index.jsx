@@ -11,7 +11,7 @@ import Groups2Icon from '@mui/icons-material/Groups2';
 import SettingsIcon from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 import { useState } from 'react';
-import { Dialog } from '../../components';
+import { Dialog } from '..';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';

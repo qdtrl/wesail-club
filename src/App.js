@@ -5,7 +5,13 @@ import '@fontsource/roboto/700.css';
 import { Stack } from '@mui/material';
 import { Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { Alerts, Loader } from './components';
+
+import { 
+  Alerts, 
+  Loader,
+  NoMatch,
+  Layout } from './components';
+
 import { 
   Account, 
   Club,
@@ -18,11 +24,10 @@ import {
   Events,
   ForgotPassword,
   Home,
-  Layout,
   Login,
-  NoMatch,
   Register,
   UpdateEvent } from './pages';
+  
 import { auth } from './services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
