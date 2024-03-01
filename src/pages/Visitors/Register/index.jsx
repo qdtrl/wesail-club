@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { REGEX } from '../../../config/config';
 
-import { Link as LinkComponent, Container, Typography, TextField, IconButton, InputAdornment, Stack, Button, Card, Avatar } from '@mui/material';
+import { Link as LinkComponent, Container, Typography, TextField, IconButton, InputAdornment, Stack, Button, Card, Avatar, Box, CircularProgress } from '@mui/material';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth, storage } from '../../../services/firebase';
+import { auth, db, storage } from '../../../services/firebase';
 import { toast } from 'react-toastify';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
-import { Loader } from '../../../components';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore/lite';
 
 
 const Register = () => {
@@ -15,6 +15,7 @@ const Register = () => {
 	const [	showPassword, setShowPassword ] = useState(false);
 	const [ image, setImage ] = useState(null);
     const [ updated, setUpdated ] = useState(true);
+	const [ progress, setProgress ] = useState(0);
 
 
 	const [ user, setUser ] = useState({
@@ -22,10 +23,38 @@ const Register = () => {
 		displayName: "",
 		photoURL: "",
 		email: "",
-		phoneNumber: "",
 		password: "",
 		password_confirmation: ""
 	})
+
+	useEffect(() => {
+		if (image) {
+			setUpdated(false);
+			const storageRef = ref(storage, `clubs/avatars/${image.name}`);
+			const uploadTask = uploadBytesResumable(storageRef, image);
+			
+			uploadTask.on('state_changed', 
+				(snapshot) => {
+					setProgress((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+				}, 
+				(error) => {
+					toast.error(error.message);
+					setUpdated(true);
+				}, 
+				() => {
+					getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+						setUser(prev => {
+							return {
+								...prev,
+								photoURL: downloadURL
+							}
+						});
+						setUpdated(true);
+					});
+				}
+			);
+		}
+	}, [image])
 
 	const handleSignUp = async (event) => {
 		event.preventDefault();
@@ -34,51 +63,28 @@ const Register = () => {
 		
 		createUserWithEmailAndPassword(auth, user.email, user.password)
 		.then(async (userCredential) => {
-			console.log('userCredential', userCredential);
-			setUser(prev => {
-				return {
-					...prev,
-					id: userCredential.user.uid
-				}
+			await addDoc(collection(db, "clubs"), {
+				user_id: userCredential.user.uid,
+				name: user.displayName,
+				photo_url: user.photoURL,
+				email: user.email,
+				created_at: serverTimestamp()
 			});
-		})
-		.then(async () => {
-			const storageRef = ref(storage, `users/avatars/${image.name}`);
-			const uploadTask = uploadBytesResumable(storageRef, image);
-			
-			uploadTask.on('state_changed', 
-				(snapshot) => {
-					console.log(snapshot.bytesTransferred, snapshot.totalBytes);
-				}, 
-				(error) => {
-					toast.error(error.message);
-				}, 
-				async () => {
-					const downloadURL = await getDownloadURL(uploadTask.snapshot.ref)
-					setUser(prev => {
-						return {
-							...prev,
-							photoURL: downloadURL
-						}
-					});
-			});
-		})
-		.then(async () => {
-			console.log('user', user);
-			updateProfile(auth.currentUser, {
+
+			await updateProfile(userCredential.user, {
 				displayName: user.displayName,
-				photoURL: user.photoURL,
-				phoneNumber: user.phoneNumber
+				photoURL: user.photoURL
 			});
-		})
-		.then(() => {
-			setUpdated(true);
-			toast.success('Inscription réussie !');
-			navigate(`/`);
 		})
 		.catch((error) => {
 			toast.error(error.message);
+			setUpdated(true);
 		})
+		.finally(() => {
+			setUpdated(true);
+			toast.success(`Inscription réussie ${user.displayName}!`);
+			navigate(`/`);
+		});
 	};
 	
 	const checkEmailFormat = () => {		
@@ -91,7 +97,7 @@ const Register = () => {
 	}
 	
 	const canBeSubmit = () => {
-	  return (checkEmailFormat() && checkPasswordsFormat()) ? true : false
+	  return (checkEmailFormat() && checkPasswordsFormat() && user?.photoURL) ? true : false
 	}
 
 	const handleChange = (event) => {
@@ -113,7 +119,7 @@ const Register = () => {
 						Inscription
 					</Typography>
 
-					<Typography variant="body2" sx={{ mb: 5 }}>
+					<Typography variant="body2" sx={{ mb: 3 }}>
 						Vous avez déjà un compte ? {''}
 						<LinkComponent onClick={() => navigate("/")} variant="subtitle2">Connectez-vous</LinkComponent>
 					</Typography>
@@ -121,11 +127,27 @@ const Register = () => {
 					<form className="" onSubmit={handleSignUp}>
 						<Stack spacing={3} sx={{width: '100%'}}>
 							<Stack alignItems='center' >
-								<Avatar
-									alt="ClubAvatar"
-									src={image ? URL.createObjectURL(image) : ""}
-									sx={{ width: 100, height: 100 }}
-								/>
+								<Box sx={{ position: 'relative' }}>
+									<Avatar
+										alt="ClubAvatar"
+										src={user.photoURL}
+										sx={{ width: 100, height: 100, zIndex: 1}}
+									/>
+									{ !updated && (
+									<CircularProgress
+										variant="determinate"
+										value={progress}
+										size={104}
+										sx={{
+										color: 'green',
+										position: 'absolute',
+										top: -2,
+										left: -2,
+										zIndex: 0,
+										}}
+									/>
+									)}
+								</Box>
 							</Stack> 
 
 							<input
@@ -142,6 +164,7 @@ const Register = () => {
 								value={user.displayName}
 								onChange={handleChange}
 							/>
+
 							<TextField 
 								name="email" 
 								type="email"
@@ -150,14 +173,7 @@ const Register = () => {
 								value={user.email}
 								onChange={handleChange}
 							/>
-							<TextField
-								type='tel'
-								name="phoneNumber"
-								required
-								label="Numéro de téléphone"
-								value={user.phoneNumber}
-								onChange={handleChange}
-							/>
+
 							<TextField 
 								name="password"
 								label="Mot de passe"
@@ -174,6 +190,7 @@ const Register = () => {
 									</InputAdornment>
 								),
 							}}/>
+
 							<TextField 
 								name="password_confirmation"
 								label="Confirmation du mot de passe"
@@ -192,10 +209,11 @@ const Register = () => {
 							}}/>
 							
 						</Stack>
-						<Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
-							{updated ? <Button variant='contained' disabled={!canBeSubmit()} type="submit">
+
+						<Stack alignItems="center" sx={{ my: 2 }}>
+							<Button variant='contained' disabled={!canBeSubmit() || !updated} type="submit">
 								Inscription
-							</Button> : <Loader />}
+							</Button>
 						</Stack>
 						
 					</form>

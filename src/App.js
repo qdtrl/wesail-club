@@ -6,16 +6,18 @@ import { Stack } from '@mui/material';
 import { Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Alerts, Loader } from './components';
-import { Club, Clubs, ForgotPassword, Home, Layout, Login, NoMatch, Register, UpdateClub } from './pages';
+import { Account, Club, ClubManagement, Clubs, CreateEvent, Event, Events, ForgotPassword, Home, Layout, Login, NoMatch, Register, UpdateEvent } from './pages';
 import { auth } from './services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 const App = () => {
   const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      user?.displayName ? setCurrentUser(user) : setCurrentUser(null);
+    const unsubscribe = onAuthStateChanged(auth, (user) => { 
+      setCurrentUser(user);
+      setLoading(false);
     });
 
     // Nettoyer l'abonnement lors du démontage du composant
@@ -26,7 +28,7 @@ const App = () => {
     <Alerts>
       <Router>
         <Suspense fallback={
-          <Stack sx={{ width: '100%', height: '100vh' }} spacing={2} alignItems="center" justifyContent="center">
+          <Stack sx={{ width: '100%', height: '98vh' }} spacing={2} alignItems="center" justifyContent="center">
             <Loader/>
           </Stack>}>
 
@@ -35,17 +37,32 @@ const App = () => {
             <Route path="/" exact element={<Login/>}/>
             <Route path="/signup" element={<Register/>}/> 
             <Route path="/forgotpassword" element={<ForgotPassword/>}/>
-            <Route path='*' element={<NoMatch />}/>
+            <Route path='*' element={loading ? 
+                <Stack sx={{ width: '100%', height: '98vh' }} spacing={2} alignItems="center" justifyContent="center">
+                  <Loader/>
+                </Stack> : <NoMatch />}/>
           </Routes>}
 
           { currentUser &&
           <Layout>
             <Routes>
               <Route path="/" exact element={<Home/>}/>
+
+              <Route path="/events" exact element={<Events/>}/>
+              <Route path="/events/:id" exact element={<Event/>}/>
+              <Route path="/events/:id/update" exact element={<UpdateEvent/>}/>
+              <Route path="/events/:id/new" exact element={<CreateEvent/>}/>
+
               <Route path="/clubs" exact element={<Clubs/>}/>
               <Route path="/clubs/:id" exact element={<Club/>}/>
-              <Route path="/clubs/:id/update" element={<UpdateClub/>}/>
-              <Route path='*' element={<NoMatch />}/>
+
+              <Route path="/dashboard/account" element={<Account/>}/>
+              <Route path="/dashboard/club-management" element={<ClubManagement/>}/>
+              
+              <Route path='*' element={loading ? 
+                <Stack sx={{ width: '100%', height: '98vh' }} spacing={2} alignItems="center" justifyContent="center">
+                  <Loader/>
+                </Stack> : <NoMatch />}/>
             </Routes>
           </Layout>
           }

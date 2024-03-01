@@ -1,7 +1,7 @@
 // Heroku
-export const API_URL = "https://reseaux-plus.herokuapp.com/"
+// export const API_URL = "https://reseaux-plus.herokuapp.com/"
 // Local
-// export const API_URL = "http://localhost:3000/"
+export const API_URL = "http://localhost:3000/"
 
 
 export const COOKIE_TOKEN = '_ocr_token_session'; 

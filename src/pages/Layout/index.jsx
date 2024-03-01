@@ -7,8 +7,8 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import PersonAdd from '@mui/icons-material/PersonAdd';
-import Settings from '@mui/icons-material/Settings';
+import Groups2Icon from '@mui/icons-material/Groups2';
+import SettingsIcon from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 import { useState } from 'react';
 import { Dialog } from '../../components';
@@ -16,6 +16,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../services/firebase';
+import { API_URL } from '../../config/config';
 
 const AccountMenu = ({ children }) => {
     const navigate = useNavigate();
@@ -45,17 +46,24 @@ const AccountMenu = ({ children }) => {
     };
     return (
         <React.Fragment>
-            <Box sx={{ display: 'flex', justifyContent: 'space-around' , alignItems: 'center', textAlign: 'center' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-around' , alignItems: 'center', textAlign: 'center', borderBottom:  1, marginBottom: '1rem', borderColor: 'divider', bgcolor: 'rgba(0, 0, 0, 0.04)' }}>
+                <IconButton
+                    onClick={() => navigate('/')}
+                    size="small"
+                    sx={{ ml: 2 }} >
+                    <Avatar sx={{ width: 50, height: 50 }} src={`${API_URL}assets/images/logo.png`} alt="we-sail-club-logo" />
+                </IconButton>
+
                 <Typography 
                     sx={{ minWidth: 100 }}
                     onClick={() => navigate('/events')}>
-                    Événement
+                    Événements
                 </Typography>
-
+                
                 <Typography 
                 sx={{ minWidth: 100 }}
                 onClick={() => navigate('/clubs')}>
-                    Club
+                    Clubs
                 </Typography>
                 
                 <IconButton
@@ -66,7 +74,7 @@ const AccountMenu = ({ children }) => {
                     aria-haspopup="true"
                     aria-expanded={open ? 'true' : undefined}
                 >
-                    <Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
+                    <Avatar sx={{ width: 50, height: 50 }} src={auth.currentUser.photoURL} alt={auth.currentUser.displayName} />
                 </IconButton>
             </Box>
             <Menu
@@ -104,30 +112,33 @@ const AccountMenu = ({ children }) => {
                 transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
-                <MenuItem onClick={handleClose}>
-                    <Avatar /> Profile
+                <MenuItem onClick={() => {
+                    setAnchorEl(null);
+                    navigate(`/dashboard/club-management`);
+                }}>
+                    <ListItemIcon>
+                        <Groups2Icon fontSize="small" />
+                    </ListItemIcon>
+                    Club
                 </MenuItem>
-                <MenuItem onClick={handleClose}>
-                    <Avatar /> My account
+
+                <MenuItem onClick={() => {
+                    setAnchorEl(null);
+                    navigate(`/dashboard/account`);
+                }}>
+                    <ListItemIcon>
+                        <SettingsIcon fontSize="small" />
+                    </ListItemIcon>
+                    Compte
                 </MenuItem>
+
                 <Divider />
-                <MenuItem onClick={handleClose}>
-                <ListItemIcon>
-                    <PersonAdd fontSize="small" />
-                </ListItemIcon>
-                Add another account
-                </MenuItem>
-                <MenuItem onClick={handleClose}>
-                <ListItemIcon>
-                    <Settings fontSize="small" />
-                </ListItemIcon>
-                Settings
-                </MenuItem>
+                
                 <MenuItem onClick={() => setOpenLogOut(true)}>
                     <ListItemIcon>
-                        <Logout fontSize="small" />
+                        <Logout fontSize="small" sx={{color: 'red'}} />
                     </ListItemIcon>
-                    Logout
+                    Déconnexion
                 </MenuItem>
             </Menu>
             
