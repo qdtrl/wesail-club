@@ -5,7 +5,7 @@ import { auth, db } from "../../services/firebase";
 import { Avatar, Box, Container, Stack, Tab, Tabs, Typography } from "@mui/material";
 import { Loader } from "../../components";
 import PropTypes from 'prop-types';
-
+const moment = require('moment');
 function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
   
@@ -40,6 +40,7 @@ function CustomTabPanel(props) {
   }
 
 const Event = () => {
+    moment.locale('fr');
     const [ event, setEvent ] = useState();
     const [ loading, setLoading ] = useState(true);
     const [ tab, setTab ] = useState(0);
@@ -76,9 +77,14 @@ const Event = () => {
             <>
                 <Stack direction="row" spacing={2} sx={{ pb: 2 }} alignItems='center'>
                     <Avatar alt={auth.currentUser.displayName} src={auth.currentUser.photoURL} sx={{ width: 56, height: 56 }} />
-                    <Typography variant="h4" gutterBottom>
-                        {event.name}
-                    </Typography>
+                    <Stack>
+                      <Typography variant="h4" >
+                          {event.name}
+                      </Typography>
+                      <Typography variant="body1" >
+                          {moment(event.start_date).format('L')} - {moment(event.end_date).format('L')}
+                      </Typography>
+                    </Stack>
                 </Stack>
                 
                 <Typography variant="body1" gutterBottom>

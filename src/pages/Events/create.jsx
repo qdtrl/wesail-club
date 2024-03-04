@@ -5,58 +5,36 @@ import { Card, CardCover, CardContent } from '@mui/joy';
 import { auth, db, storage } from '../../services/firebase';
 import { toast } from 'react-toastify';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
-import { getDocs, query, where, collection, addDoc, serverTimestamp} from "firebase/firestore";
+import { collection, addDoc, serverTimestamp} from "firebase/firestore";
 import { AutoCompleteCities, Loader } from "../../components";
 import ClearIcon from '@mui/icons-material/Clear';
 import { useNavigate } from "react-router-dom";
 
 const CreateEvent = () => {
+    const navigate = useNavigate();
+
     const [ event, setEvent ] = useState({
-        club_id: "",
+        club_id: auth.currentUser.uid,
         name: "",
-        organizer: "",
         description: "",
         address: "",
         city: "",
         zipcode: "",
         start_date: new Date().toISOString().split("T")[0],
         end_date: new Date().toISOString().split("T")[0],
-        cover: "",
+        cover_url: "",
         images: [],
     });
 
     const [ address, setAddress ] = useState();
-    const navigate = useNavigate();
-
 	const [ cover, setCover ] = useState(null);
     const [ images, setImages ] = useState([]);
     const [ progress, setProgress ] = useState({
         cover: 0,
         images: []
     });
-    const [ updated, setUpdated ] = useState(true);
 
-    useEffect(() => {
-        const fetchData = async () => {
-          const user = auth.currentUser;
-    
-          if (user) {
-            const clubsRef = collection(db, "clubs");
-            const q = query(clubsRef, where("user_id", "==", user.uid));
-            const querySnapshot = await getDocs(q);
-    
-            setEvent(prev => {
-                return {
-                  ...prev,
-                  club_id: querySnapshot.docs[0].id,
-                  organizer: querySnapshot.docs[0].data().name
-                }
-            });
-          }
-        };
-    
-        fetchData();
-    }, []);
+    const [ loading, setLoading ] = useState(false);
 
     useEffect(() => {
         if (address) {
@@ -72,7 +50,7 @@ const CreateEvent = () => {
     }, [address]);
 
     useEffect(() => {
-        if (event.cover && event.images.length === images.length) {
+        if (event.cover_url && event.images.length === images.length) {
             addDoc(collection(db, "events"), {
                 ...event,
                 created_at: serverTimestamp()
@@ -100,14 +78,14 @@ const CreateEvent = () => {
             },
             (error) => {
                 toast.error(error.message);
-                setUpdated(true);
+                setLoading(false);
             }, 
             () => {
                 getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                     setEvent(prev => {
                         return {
                             ...prev,
-                            cover: downloadURL
+                            cover_url: downloadURL
                         }
                     }); 
                 });
@@ -134,7 +112,7 @@ const CreateEvent = () => {
                 },
                 (error) => {
                     toast.error(error.message);
-                    setUpdated(true);
+                    setLoading(false);
                 }, 
                 () => {
                     getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
@@ -154,18 +132,17 @@ const CreateEvent = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        setUpdated(false);
+        setLoading(true);
 
         if (event.start_date >= event.end_date) {
             toast.error('La date de fin doit être supérieure à la date de début');
-            setUpdated(true);
+            setLoading(false);
             return;
         }
 
         await uploadCover();
 
         await uploadImages();
-    
     }
 
     return (
@@ -194,14 +171,14 @@ const CreateEvent = () => {
                                 })}/>
 
                             <TextField
-                                label="Organisateur"
+                                label="Sponsor"
                                 variant="outlined"
                                 required
-                                value={event.organizer}
+                                value={event.sponsor}
                                 onChange={(e) => setEvent(prev => {
                                     return {
                                         ...prev,
-                                        organizer: e.target.value
+                                        sponsor: e.target.value
                                     }
                                 })}/>
 
@@ -246,6 +223,7 @@ const CreateEvent = () => {
                                             ...prev,
                                             city: e.target.value
                                         }})}/>
+
                                 <TextField
                                     type='number'
                                     label="Code postal"
@@ -275,6 +253,7 @@ const CreateEvent = () => {
                                             ...prev,
                                             start_date: e.target.value
                                         }})}/>
+                                        
                                 <TextField
                                     label="Date de fin"
                                     type="date"
@@ -355,7 +334,7 @@ const CreateEvent = () => {
                                                 }
                                             }}
                                             onClick={() => {
-                                                if (updated) {
+                                                if (!loading) {
                                                     setImages(prev => prev.filter((img, imgIndex) => imgIndex !== index));
                                                 }
                                             }}>
@@ -386,7 +365,7 @@ const CreateEvent = () => {
                     </Card>
 
                     <Stack alignItems='center'  >
-                        { updated ? 
+                        { !loading ? 
                         <Button onClick={handleSubmit} variant="contained"  >
                             Créer
                         </Button> : <Loader />}

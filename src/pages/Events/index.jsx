@@ -2,15 +2,16 @@ import { Autocomplete, Button, Container, Stack, TextField, Typography } from "@
 import { Card, CardCover } from '@mui/joy';
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore"; 
-import { db } from "../../services/firebase";
+import { auth, db } from "../../services/firebase";
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import { useNavigate } from "react-router-dom";
 import { Loader } from "../../components";
 import AddIcon from '@mui/icons-material/Add';
-import { moment } from "../../config/config";
-
+const moment = require('moment');
 const Events = () => {
+    moment.locale('fr');
     const [ events, setEvents ] = useState([]);
+    const [ clubs, setClubs ] = useState([]);
     const [ filteredEvents, setFilteredEvents ] = useState([]);
     const [ loading, setLoading ] = useState(true);
     const [ search , setSearch ] = useState('');
@@ -26,9 +27,20 @@ const Events = () => {
         setEvents(eventsList);
         setLoading(false);
     };
+
+    const getClubs = async () => {
+        const clubsRef = collection(db, "clubs");
+        const clubsSnapshot = await getDocs(clubsRef);
+
+        const clubsList = clubsSnapshot.docs.map(doc => ( { ...doc.data(), id: doc.id }));
+
+        setClubs(clubsList);
+        setLoading(false);
+    };
     
     useEffect(() => {
         getEvents();
+        getClubs();
     }, []);
 
     useEffect(() => {
@@ -67,11 +79,11 @@ const Events = () => {
                     {filteredEvents.map((event, i) => (
                         <Card key={i} sx={{ maxWidth: '98vw', minWidth: 300, height: 400 }} >
                             <CardCover>
-                                {event.cover.includes('mp4') ?
+                                {event.cover_url?.includes('mp4') ?
                                 <video autoPlay loop muted >
-                                    <source src={event.cover} type="video/mp4" />
+                                    <source src={event.cover_url} type="video/mp4" />
                                 </video>: 
-                                <img src={event.cover} alt="cover" /> }
+                                <img src={event.cover_url} alt="cover" /> }
                             </CardCover>
                             <Stack justifyContent='flex-end' sx={{  zIndex: 0, background: 'rgba(0,0,0,0.7)', color: 'white', position: 'absolute', bottom: 0, left: 0, p: 1, right: 0, borderRadius: 'inherit' }}>
                                 <Stack direction="row" justifyContent="space-between" alignItems="baseline">
@@ -94,17 +106,19 @@ const Events = () => {
                                         {moment(event.start_date).format('L')} - {moment(event.end_date).format('L')}
                                     </Typography>
                                 </Stack>
-                                <Typography variant="body2">
-                                    {event.address} {event.city}, {event.zipcode}
+
+                                <Typography variant="body1">
+                                    Organisé par {clubs.find(club => club.id === event.club_id)?.name} et sponsorisé par {event.sponsor}
                                 </Typography>
+
                                 <Stack direction="row" justifyContent="space-between" alignItems="center">
                                     <Typography variant="body2">
                                         {event.members ? event.members.length : 0} participants
                                     </Typography>
 
-                                    <Button size="small" onClick={() => navigate(`/conversations`)}>
+                                    { event.club_id !== auth.currentUser.uid && <Button size="small" onClick={() => navigate(`/conversations`)}>
                                         <QuestionAnswerIcon />
-                                    </Button>
+                                    </Button>}
                                 </Stack>
                             </Stack>
                         </Card>
