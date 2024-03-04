@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Container, Stack, Typography } from "@mui/material"
+import { Avatar, Button, Card, Container, Stack, Typography } from "@mui/material"
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import { useNavigate } from "react-router-dom";
 import { collection, getDocs } from 'firebase/firestore';
@@ -27,7 +27,7 @@ const Conversations = () => {
 
     return (
         <Container>
-            <Stack direction='row' justifyContent='space-between'>
+            <Stack direction='row' justifyContent='space-between' mb={4}>
                 <Typography variant="h4">Conversations</Typography>
                 <Button variant="contained" size="small" onClick={() => navigate(`/create-conversations`)}>
                     <AddCommentIcon />
@@ -37,11 +37,23 @@ const Conversations = () => {
                 <Stack sx={{ width: '100%', height: '40vh' }} spacing={2} alignItems="center" justifyContent="center">
                     <Loader/>
                 </Stack> : 
-                <Stack direction='column' spacing={2}>
+                <Stack direction='column' spacing={2} >
                     {conversations.map((conversation, i) => (
-                        <Button key={i} variant="contained" size="large" onClick={() => navigate(`/conversation/${conversation.id}`)}>
-                            {conversation.name}
-                        </Button>
+                        <Card key={i} onClick={() => navigate(`/conversations/${conversation.id}`)} sx={{ p: 2, '&:hover': { cursor: 'pointer', backgroundColor: 'rgba(0, 0, 0, 0.1)', } }}>
+                            <Stack direction='row' spacing={2} >
+                                <Avatar alt={conversation.name} src={conversation.icon_url} sx={{ width: 56, height: 56 }} />
+                            
+                                <Stack>
+                                    <Typography variant="h6">
+                                        {conversation.name}
+                                    </Typography>
+
+                                    <Typography variant="body1">
+                                        {conversation.users.length} participants
+                                    </Typography>
+                                </Stack>
+                            </Stack>
+                        </Card>
                     ))}
                 </Stack>}
 
