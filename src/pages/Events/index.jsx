@@ -22,7 +22,7 @@ const Events = () => {
         const eventsSnapshot = await getDocs(eventsRef);
         
         const eventsList = eventsSnapshot.docs.map(doc => ( { ...doc.data(), id: doc.id }));
-        
+
         setEvents(eventsList);
         setLoading(false);
     };
