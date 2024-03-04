@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { auth, db, storage } from "../../services/firebase";
 import { addDoc, collection, getDocs, serverTimestamp } from "firebase/firestore";
-import { ref, set } from "firebase/database";
-import { getDownloadURL, uploadBytesResumable } from "firebase/storage";
+import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 import { toast } from "react-toastify";
 import { Avatar, Box, Button, Card, CircularProgress, Container, Divider, Stack, TextField, Typography } from "@mui/material";
 import { Loader, MultipleSelectCheckmarks } from "../../components";
@@ -17,6 +16,7 @@ const CreateConversation = () => {
     const [ convUsers, setConvUsers ] = useState([]);
     const [ loading, setLoading ] = useState(true);
     const [ progress, setProgress ] = useState(0);
+    const [ clubId, setClubId ] = useState('');
 
     const [ conversation, setConversation ] = useState({
         name: '',
@@ -68,12 +68,17 @@ const CreateConversation = () => {
         const clubsSnapshot = await getDocs(clubsRef);
 
         const clubsList = clubsSnapshot.docs.map(doc => ( { ...doc.data(), id: doc.id }));
+        
+        const id = clubsList.find(club => club.user_id === auth.currentUser.uid).id;
+        
+        setClubId(id);
         setConversation(prev => {
             return {
                 ...prev,
-                admins: clubsList.filter(club => club.user_id === auth.currentUser.uid)
+                admins: [id]
             }
         });
+
         setClubs(clubsList);
         setLoading(false);
     };
@@ -90,12 +95,27 @@ const CreateConversation = () => {
                 created_at: serverTimestamp()
             })
             .then((e) => {
+                setLoading(false);
                 toast.success('La conversation a été créé avec succès');
                 navigate(`/conversations/${e.id}`);
             })
         }
     }, [conversation, navigate]);
 
+    useEffect(() => {
+        setConversation(prev => {
+            return {
+                ...prev,
+                admins: [ clubId, ...admins ]
+            }
+        });
+        setConversation(prev => {
+            return {
+                ...prev,
+                users: convUsers
+            }
+        });
+    }, [admins, convUsers, clubId]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -118,7 +138,7 @@ const CreateConversation = () => {
                                 <Box sx={{ position: 'relative' }}>
                                     <Avatar
                                         alt="icon"
-                                        src={conversation.icon_url}
+                                        src={icon ? URL.createObjectURL(icon) : ""}
                                         sx={{ width: 100, height: 100, zIndex: 1}}
                                     />
                                     { loading && (
@@ -137,7 +157,6 @@ const CreateConversation = () => {
                                     )}
                                 </Box>
                             </Stack> 
-
 
                             <input
                                 type="file"
@@ -160,12 +179,14 @@ const CreateConversation = () => {
                                 })}/>
 
                             <MultipleSelectCheckmarks 
+                                tag="Administrateurs"
                                 users={users}
                                 clubs={clubs}
                                 selects={admins}
                                 setSelects={setAdmins} />
 
                             <MultipleSelectCheckmarks 
+                                tag="Participants"
                                 users={users}
                                 clubs={clubs}
                                 selects={convUsers}

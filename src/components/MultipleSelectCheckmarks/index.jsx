@@ -7,6 +7,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Select from '@mui/material/Select';
 import Checkbox from '@mui/material/Checkbox';
 import ListSubheader from '@mui/material/ListSubheader';
+import { auth } from '../../services/firebase';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -19,51 +20,51 @@ const MenuProps = {
   },
 };
 
-const MultipleSelectCheckmarks = ({ users, clubs, selects, setSelects}) => {
-  console.log(users, clubs);
+const MultipleSelectCheckmarks = ({ tag, users, clubs, selects, setSelects}) => {
+
   const handleChange = (event) => {
-    console.log(event.target.value);
-    // const {
-    //   target: { value },
-    // } = event;
-    // setPersonName(
-    //   // On autofill we get a stringified value.
-    //   typeof value === 'string' ? value.split(',') : value,
-    // );
+    setSelects(event.target.value);
   };
 
   return (
       <FormControl sx={{ m: 1, width: 300 }}>
-        <InputLabel id="demo-multiple-checkbox-label">Tag</InputLabel>
+        <InputLabel id={`multiple-checkbox-${tag}`}>{tag}</InputLabel>
         <Select
-          labelId="demo-multiple-checkbox-label"
-          id="demo-multiple-checkbox"
+          labelId={`multiple-checkbox-${tag}`}
           multiple
           value={selects}
           onChange={handleChange}
-          input={<OutlinedInput label="Tag" />}
-          renderValue={(selected) => selected.join(', ')}
+          input={<OutlinedInput label={tag} />}
+          renderValue={(selected) => selected.map((id) => {
+            const user = users.find(user => user.id === id);
+            if (user) {
+              return `${user.first_name} ${user.last_name}`;
+            }
+            const club = clubs.find(club => club.id === id);
+            if (club) {
+              return club.name;
+            }
+            return '';
+          }).join(', ')}  
           MenuProps={MenuProps}
         >
-          <Select>
-            <ListSubheader>Clubs</ListSubheader>
-            {clubs.map((club) => (
-              <MenuItem key={club} value={club.id}>
-                <Checkbox checked={selects.includes(club.id)} />
-                <ListItemText primary={club} />
-              </MenuItem>
-            ))}
-            
-            <ListSubheader>Utilisateurs</ListSubheader>
+          <ListSubheader>Clubs</ListSubheader>
+          {clubs.filter(club => club.user_id !== auth.currentUser.uid).map((club) => (
+            <MenuItem key={club.id} value={club.id}>
+              <ListItemText primary={club.name} />
+              <Checkbox checked={selects.includes(club.id)} />
+            </MenuItem>
+          ))}
           
-            {users.map((user) => (
-              <MenuItem key={user} value={user.id}>
-                <Checkbox checked={selects.includes(user.id)} />
-                <ListItemText primary={user} />
-              </MenuItem>
-            ))}
-          </Select>
-          
+          <ListSubheader>Utilisateurs</ListSubheader>
+        
+          {users.map((user) => (
+            <MenuItem key={user.id} value={user.id}>
+              <ListItemText primary={`${user.first_name} ${user.last_name}`} />
+              <Checkbox checked={selects.includes(user.id)} />
+            </MenuItem>
+          ))}
+        
         </Select>
       </FormControl>
   );

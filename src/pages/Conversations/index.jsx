@@ -1,16 +1,28 @@
-import { ref, push } from "firebase/database";
 import { useEffect, useState } from 'react';
 import { Button, Container, Stack, Typography } from "@mui/material"
-import { rtdb } from '../../services/firebase';
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import { useNavigate } from "react-router-dom";
+import { collection, getDocs } from 'firebase/firestore';
+import { Loader } from '../../components';
+import { db } from '../../services/firebase';
 
 const Conversations = () => {
     const navigate = useNavigate();
-    const [conversations, setConversations] = useState([]);
+    const [ loading, setLoading ] = useState(true);
+    const [ conversations, setConversations] = useState([]);
+
+    const getConversations = async () => {
+        const conversationsRef = collection(db, "conversations");
+        const conversationsSnapshot = await getDocs(conversationsRef);
+
+        const conversationsList = conversationsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+
+        setConversations(conversationsList);
+        setLoading(false);
+    }
 
     useEffect(() => {
-
+        getConversations();
     }, []);
 
     return (
@@ -21,7 +33,18 @@ const Conversations = () => {
                     <AddCommentIcon />
                 </Button>
             </Stack>
-            {}
+            { loading ? 
+                <Stack sx={{ width: '100%', height: '40vh' }} spacing={2} alignItems="center" justifyContent="center">
+                    <Loader/>
+                </Stack> : 
+                <Stack direction='column' spacing={2}>
+                    {conversations.map((conversation, i) => (
+                        <Button key={i} variant="contained" size="large" onClick={() => navigate(`/conversation/${conversation.id}`)}>
+                            {conversation.name}
+                        </Button>
+                    ))}
+                </Stack>}
+
         </Container>
     );
 }
