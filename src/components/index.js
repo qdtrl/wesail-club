@@ -4,6 +4,7 @@ import Dialog from "./Dialog";
 import NoMatch from "./NoMatch";
 import Layout from "./Layout";
 import AutoCompleteCities from "./AutoCompleteCities";
+import MultipleSelectCheckmarks from "./MultipleSelectCheckmarks";
 
 export {
     Dialog,
@@ -12,4 +13,5 @@ export {
     NoMatch,
     Layout,
     AutoCompleteCities,
+    MultipleSelectCheckmarks
 }

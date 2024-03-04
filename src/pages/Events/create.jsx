@@ -82,7 +82,6 @@ const CreateEvent = () => {
                 navigate(`/events/${e.id}`);
             })
         }
-        console.log(event);
     }, [event, images, navigate]);
 
     const uploadCover = async () => {

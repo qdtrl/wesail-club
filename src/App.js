@@ -19,6 +19,7 @@ import {
   Clubs,
   Conversation,
   Conversations,
+  CreateConversation,
   CreateEvent,
   Event,
   Events,
@@ -76,6 +77,7 @@ const App = () => {
 
               <Route path="/conversations" exact element={<Conversations/>}/>
               <Route path="/conversations/:id" exact element={<Conversation/>}/>
+              <Route path="/create-conversations" exact element={<CreateConversation/>}/>
 
               <Route path="/clubs" exact element={<Clubs/>}/>
               <Route path="/clubs/:id" exact element={<Club/>}/>

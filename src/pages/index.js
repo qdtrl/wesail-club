@@ -16,6 +16,7 @@ const UpdateEvent = lazy(() => import("./Events/update"));
 // Conversations
 const Conversations = lazy(() => import("./Conversations"));
 const Conversation = lazy(() => import("./Conversations/show"));
+const CreateConversation = lazy(() => import("./Conversations/create"));
 
 // Clubs
 const Clubs = lazy(() => import("./Clubs"));
@@ -36,6 +37,7 @@ export {
     UpdateEvent,
     Conversations,
     Conversation,
+    CreateConversation,
     Clubs,
     Club,
     Account,
