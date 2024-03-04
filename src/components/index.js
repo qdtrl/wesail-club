@@ -3,11 +3,13 @@ import Loader from "./Loader";
 import Dialog from "./Dialog";
 import NoMatch from "./NoMatch";
 import Layout from "./Layout";
+import AutoCompleteCities from "./AutoCompleteCities";
 
 export {
     Dialog,
     Alerts,
     Loader,
     NoMatch,
-    Layout
+    Layout,
+    AutoCompleteCities,
 }

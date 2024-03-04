@@ -1,0 +1,20 @@
+.autocomplete_address {
+    cursor: pointer;
+    background-color: #fff;
+    z-index: 100;
+    //  border only bottom, right and left
+    border: 1px solid #ddd;
+    border-top: none;
+    // last element boarder radius
+    &:first-child {
+        margin-top: -8;
+        padding-top: 14;
+    }
+    &:last-child {
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
+    &:hover {
+        background-color: #f9f9f9;
+    }
+}

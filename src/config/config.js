@@ -1,3 +1,5 @@
+
+export const moment = require('moment').locale('fr');
 // Heroku
 // export const API_URL = "https://reseaux-plus.herokuapp.com/"
 // Local
