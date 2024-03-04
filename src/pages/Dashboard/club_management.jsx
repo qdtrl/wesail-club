@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { doc, getDoc} from "firebase/firestore";
 import { auth, db, storage } from "../../services/firebase";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Box, Card, CircularProgress, Container, Divider, Stack, TextField, Typography } from "@mui/material";
@@ -51,22 +51,16 @@ const ClubManagement = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-          const user = auth.currentUser;
-    
-          if (user) {
-            const clubsRef = collection(db, "clubs");
-            const q = query(clubsRef, where("user_id", "==", user.uid));
-            const querySnapshot = await getDocs(q);
-    
-            console.log(querySnapshot.docs[0].data());
+            const clubRef = doc(db, "clubs", auth.currentUser.uid);
+            const clubDoc = await getDoc(clubRef);
 
-            if (querySnapshot.docs[0].exists()) {
-                setClub(querySnapshot.docs[0].data());
+            if (clubDoc.exists()) {
+                setClub(clubDoc.data());
             } else {
                 navigate('/');
             }
-          }
-          setLoading(false);
+            
+            setLoading(false);
         };
     
         fetchData();
@@ -91,7 +85,7 @@ const ClubManagement = () => {
                     <form >
                         <Stack spacing={3}>
                             <Typography variant="h6" gutterBottom>
-                                Icône du club
+                                Cover du club
                             </Typography>
 
                             <Stack alignItems='center' >

@@ -60,7 +60,7 @@ const Clubs = () => {
                         <Card key={i} sx={{ maxWidth: '98vw', minWidth: 300 }} >
                             <CardMedia
                             sx={{ height: 400 }}
-                            image={club.photo_url}
+                            image={club.cover_url}
                             title={`Logo du club ${club.name}`}
                             />
                             <CardContent>

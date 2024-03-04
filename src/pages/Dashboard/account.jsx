@@ -14,7 +14,7 @@ const Account = () => {
     const [ progress, setProgress ] = useState(0);
 
     const handleUpload = (e) => {
-        const storageRef = ref(storage, `users/avatars/${e.name}`);
+        const storageRef = ref(storage, `clubs/icons/${e.name}`);
         const uploadTask = uploadBytesResumable(storageRef, e);
     
         uploadTask.on('state_changed', 
