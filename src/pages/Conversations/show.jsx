@@ -1,23 +1,37 @@
-import { Avatar, Button, Card, Container, Stack, TextField, Typography } from "@mui/material"
+import { Avatar, Button, Container, IconButton, LinearProgress, Stack, TextField, Typography } from "@mui/material"
 import { Loader } from "../../components";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { useNavigate, useParams } from "react-router-dom";
-import { ref, push, onValue } from 'firebase/database';
+import { ref, push, onValue, serverTimestamp, set } from 'firebase/database';
 import { auth, db, rtdb } from "../../services/firebase";
 import SettingsIcon from '@mui/icons-material/Settings';
+import SendIcon from '@mui/icons-material/Send';
+import IosShareIcon from '@mui/icons-material/IosShare';
+import ClearIcon from '@mui/icons-material/Clear';
+import { CardCover, Card } from "@mui/joy";
 
 const Conversation = () => {
     const [ conversation, setConversation ] = useState();
+    const [ users, setUsers ] = useState([]);
+    const [ images, setImages ] = useState([]);
     const [ loading, setLoading ] = useState(true);
-    const [ clubId, setClubId ] = useState(null);
-    const [ messages, setMessages ] = useState([]);
-    const [ message, setMessage ] = useState({
-        content: '',
-        user: '',
-        files: [],
-        timestamp: '',
+    const [ update, setUpdate ] = useState(false);
+    const [ progress, setProgress ] = useState({
+        images: [] 
     });
+    const [ messages, setMessages ] = useState([]);
+    const [ message, setMessage ] = useState("");
+
+    const messagesEndRef = useRef(null)
+
+    const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView()
+    }
+  
+    useEffect(() => {
+        if (messages && users) scrollToBottom()
+    }, [messages, users, images]);
 
     const { id } = useParams();
 
@@ -37,39 +51,54 @@ const Conversation = () => {
         setLoading(false);
     };
 
-    console.log(messages);
 
+
+    useEffect(() => {
+        const getUser = async (id) => {
+            const userDoc = await getDoc(doc(db, 'users', id));
+            if (userDoc.exists()) return { ...userDoc.data(), id: userDoc.id }
+            const clubDoc = await getDoc(doc(db, 'clubs', id));
+            if (clubDoc.exists()) return { ...clubDoc.data(), id: clubDoc.id }
+        };
+
+          
+        const getUsersConversation = async () => {
+            setLoading(true);
+            const userPromises = conversation.users.map(id => getUser(id));
+            const usersList = await Promise.all(userPromises);
+            return usersList;
+        };
+
+        if (conversation) {
+            getUsersConversation()
+            .then(usersList => {
+                setUsers(usersList);
+                setLoading(false);
+            });
+        }
+    }, [conversation]);
+
+
+    console.log(messages);
+    console.log(conversation);
+    console.log(users);
 
     const postMessage = async () => {
-        push(ref(rtdb, `conversations/${id}/messages`), message);
+        push(ref(rtdb, `conversations/${id}/messages`), {
+            message: message,
+            created_at: serverTimestamp(),
+            user_id: auth.currentUser.uid,
+        });
+        setMessage("");
     };
 
     useEffect(() => {
-        const fetchClubId = async () => {
-            setLoading(true);
-
-            const user = auth.currentUser;
-      
-            if (user) {
-              const clubsRef = collection(db, "clubs");
-              const q = query(clubsRef, where("user_id", "==", user.uid));
-              const querySnapshot = await getDocs(q);
-        
-              if (querySnapshot.docs[0].exists()) {
-                  setClubId(querySnapshot.docs[0].id);
-              }
-            }
-            setLoading(false);
-          };
-      
-        fetchClubId();
         getConversation();
         const convRef = ref(rtdb, `conversations/${id}/messages`);
         
         onValue(convRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                console.log(data);
                 setMessages(Object.values(data));
             }
         });
@@ -91,54 +120,128 @@ const Conversation = () => {
                             {conversation.name}
                         </Typography>
                     </Stack>
-                    { conversation.admins.includes(clubId) && <Button variant="contained" onClick={() => navigate(`/conversations/${id}/edit`)}>
+                    { conversation.admins.includes(auth.currentUser.uid) && <Button variant="contained" onClick={() => navigate(`/conversations/${id}/edit`)}>
                         <SettingsIcon />
                     </Button>}
                 </Stack>
 
 
-                <Card sx={{ p: 2}}>
-                    <Stack direction='column' spacing={2} >
-                        {messages.map((message, i) => (
-                            <Stack key={i} sx={{ p: 2, '&:hover': { cursor: 'pointer', backgroundColor: 'rgba(0, 0, 0, 0.1)', } }}>
-                                <Stack direction='row' spacing={2} >
-                                    <Avatar alt={message.user} src={message.icon_url} sx={{ width: 56, height: 56 }} />
-                                    <Stack>
-                                        <Typography variant="h6">
-                                            {message.user}
-                                        </Typography>
-                                        <Typography variant="body1">
-                                            {message.content}
-                                        </Typography>
+                    <Stack direction='column' spacing={2} sx={{ height: '70vh', overflowY: 'auto'}}>
+                        {users && messages.map((message, i) => {
+                            const user = users.find(user => user.id === message.user_id);
+                            const isMyMessage = user?.id !== auth.currentUser.uid;
+                            return  (
+                            <Stack key={i} alignItems={isMyMessage ? 'flex-end' : 'flex-start'}>
+                                <Card sx={{p: 2, width: 400, maxWidth: '98vw', backgroundColor: false ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.2)'}}>
+                                {isMyMessage ?
+                                    <Typography variant="body1">
+                                        {message.content}
+                                    </Typography>
+                                    :
+                                    <Stack direction='row' spacing={2} >
+                                        <Avatar alt={user.name} src={user.icon_url} sx={{ width: 56, height: 56 }} />
+                                        <Stack>
+                                            <Typography variant="h6">
+                                                {user.name}
+                                            </Typography>
+                                            <Typography variant="body1">
+                                                {message.content}
+                                            </Typography>
+                                        </Stack>
+                                    </Stack>}
+                                </Card>
+                            </Stack>)
+                            })}
+                            { images.length > 0 && <Stack spacing={2} alignItems='flex-end'>
+                                <Card sx={{p: 2, width: 400, maxWidth: '98vw', height: 100, backgroundColor: 'rgba(0,0,0,0.1)', overflow: 'auto'}}>
+                                    <Stack direction='row' spacing={2} alignItems='center'>
+                                    { images.map((image, i) => (
+                                        <Card key={i} sx={{ width: 'auto',maxWidth: 200, height: 'auto', maxHeight: 100, }}>
+                                            <CardCover>
+                                                <img src={URL.createObjectURL(image)} alt="preview" style={{ width: '100%', height: 'auto' }} />
+                                            </CardCover>
+                                            <Stack alignItems='flex-end' sx={{height: '100%', zIndex: 1}}>
+                                                { (progress.images[i] || 0) !== 0 ? 
+                                                    <Stack sx={{ width: '100%' }} >
+                                                        <LinearProgress variant="determinate" value={progress.images[i] || 0} />
+                                                    </Stack> 
+                                                :
+                                                    <IconButton color="error" 
+                                                    sx={{ 
+                                                        background: 'rgba(0,0,0,0.3)',
+                                                        '&:hover': {
+                                                            background: 'rgba(100,0,0,0.5)',
+                                                            color: 'white'
+                                                        }
+                                                    }}
+                                                    onClick={() => {
+                                                        if (!loading) {
+                                                            setImages(prev => prev.filter((img, imgIndex) => imgIndex !== i));
+                                                        }
+                                                    }}>
+                                                        <ClearIcon />
+                                                    </IconButton>}
+                                                </Stack>
+                                        </Card>
+                                    ))}
                                     </Stack>
-                                </Stack>
-                            </Stack>
-                        ))
-                        }
-
-                        <Stack direction='row' spacing={2} >
-                            <TextField
-                                fullWidth
-                                id="outlined-multiline-static"
-                                label="Message"
-                                multiline
-                                rows={2}
-                                defaultValue="Votre message"
-                                variant="outlined"
-                                value={message.content}
-                                onChange={(e) => setMessage({ ...message, content: e.target.value })}
-                            />
-                            
-                                
-                        
-                            <Stack>
-                                <Button variant="contained" onClick={postMessage}>Envoyer</Button>
-                                <Button 
-                                    variant="contained">Joindre un fichier</Button>
-                            </Stack>
-                        </Stack>
+                                </Card>
+                            </Stack>}
+                            <div ref={messagesEndRef} />
                     </Stack>
-                </Card>
+
+                    <Stack direction='row' spacing={2} sx={{bottom: 0}}>
+                        <TextField
+                            fullWidth
+                            id="outlined-multiline-static"
+                            label="Message"
+                            multiline
+                            rows={2}
+                            defaultValue="Votre message"
+                            variant="outlined"
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    postMessage();
+                                }
+                            }}
+                        />
+                        
+                            
+                    
+                        { update ?
+                            <Stack sx={{width: 144}} alignItems='center'>
+                                <Loader />
+                            </Stack>
+                             : 
+                            <Stack direction='row' spacing={2} alignItems='flex-start'>
+                                <label htmlFor="icon-button-file">
+                                    <Button variant="contained" component="span">
+                                        <IosShareIcon />
+                                    </Button>
+                                </label>
+
+                                <input
+                                    accept="image/*"
+                                    id="icon-button-file"
+                                    type="file"
+                                    onChange={(e) => {
+                                        for (let i = 0; i < e.target.files.length; i++) {
+                                            setImages(prev => {
+                                                return [...prev, e.target.files[i]]
+                                            });
+                                        }}}
+                                    multiple
+                                    style={{ display: 'none' }}
+                                />
+
+                                <Button variant="contained" onClick={postMessage}>
+                                    <SendIcon />
+                                </Button>
+                            </Stack>}
+                    </Stack>
             </Stack>
         }
         </Container>

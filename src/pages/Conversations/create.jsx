@@ -16,7 +16,6 @@ const CreateConversation = () => {
     const [ convUsers, setConvUsers ] = useState([]);
     const [ loading, setLoading ] = useState(true);
     const [ progress, setProgress ] = useState(0);
-    const [ clubId, setClubId ] = useState('');
 
     const [ conversation, setConversation ] = useState({
         name: '',
@@ -68,14 +67,12 @@ const CreateConversation = () => {
         const clubsSnapshot = await getDocs(clubsRef);
 
         const clubsList = clubsSnapshot.docs.map(doc => ( { ...doc.data(), id: doc.id }));
-        
-        const id = clubsList.find(club => club.user_id === auth.currentUser.uid).id;
-        
-        setClubId(id);
+                
         setConversation(prev => {
             return {
                 ...prev,
-                admins: [id]
+                admins: [ auth.currentUser.uid ],
+                users: [ auth.currentUser.uid ]
             }
         });
 
@@ -106,16 +103,16 @@ const CreateConversation = () => {
         setConversation(prev => {
             return {
                 ...prev,
-                admins: [ clubId, ...admins ]
+                admins: [ auth.currentUser.uid, ...admins ]
             }
         });
         setConversation(prev => {
             return {
                 ...prev,
-                users: convUsers
+                users: [ auth.currentUser.uid, ...convUsers]
             }
         });
-    }, [admins, convUsers, clubId]);
+    }, [admins, convUsers]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

@@ -105,6 +105,7 @@ const Register = () => {
 
 			await setDoc(clubRef, {
 				name: user.displayName,
+				icon_url: user.icon_url,
 				cover_url: user.cover_url,
 				email: user.email,
 				created_at: serverTimestamp()
