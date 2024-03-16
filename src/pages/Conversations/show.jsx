@@ -85,7 +85,7 @@ const Conversation = () => {
 
     const postMessage = async () => {
         push(ref(rtdb, `conversations/${id}/messages`), {
-            message: message,
+            content: message,
             created_at: serverTimestamp(),
             user_id: auth.currentUser.uid,
         });
@@ -129,7 +129,7 @@ const Conversation = () => {
                     <Stack direction='column' spacing={2} sx={{ height: '70vh', overflowY: 'auto'}}>
                         {users && messages.map((message, i) => {
                             const user = users.find(user => user.id === message.user_id);
-                            const isMyMessage = user?.id !== auth.currentUser.uid;
+                            const isMyMessage = user?.id === auth.currentUser.uid;
                             return  (
                             <Stack key={i} alignItems={isMyMessage ? 'flex-end' : 'flex-start'}>
                                 <Card sx={{p: 2, width: 400, maxWidth: '98vw', backgroundColor: false ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.2)'}}>
@@ -139,7 +139,7 @@ const Conversation = () => {
                                     </Typography>
                                     :
                                     <Stack direction='row' spacing={2} >
-                                        <Avatar alt={user.name} src={user.icon_url} sx={{ width: 56, height: 56 }} />
+                                        <Avatar alt={user?.name} src={user.icon_url} sx={{ width: 56, height: 56 }} />
                                         <Stack>
                                             <Typography variant="h6">
                                                 {user.name}
